@@ -1,0 +1,14 @@
+C:\Users\REDX\Source\Repos\SCMagTek\bin\Debug\SCMagTek.exe.config
+C:\Users\REDX\Source\Repos\SCMagTek\bin\Debug\SCMagTek.exe
+C:\Users\REDX\Source\Repos\SCMagTek\bin\Debug\SCMagTek.pdb
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.csproj.AssemblyReference.cache
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.Form1.resources
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.Properties.Resources.resources
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.csproj.GenerateResource.cache
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.csproj.CoreCompileInputs.cache
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.exe
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.pdb
+C:\Users\REDX\Source\Repos\SCMagTek\bin\Debug\SCMagTek.exe.manifest
+C:\Users\REDX\Source\Repos\SCMagTek\bin\Debug\SCMagTek.application
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.exe.manifest
+C:\Users\REDX\Source\Repos\SCMagTek\obj\Debug\SCMagTek.application
