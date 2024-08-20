@@ -49,6 +49,9 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
+            this.front = new System.Windows.Forms.RadioButton();
+            this.button2 = new System.Web.UI.WebControls.Button();
+            this.back = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize) (this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -232,11 +235,38 @@
             this.label11.TabIndex = 28;
             this.label11.Text = "MAGTEK SCANNER";
             // 
+            // front
+            // 
+            this.front.Checked = true;
+            this.front.Location = new System.Drawing.Point(185, 149);
+            this.front.Name = "front";
+            this.front.Size = new System.Drawing.Size(104, 24);
+            this.front.TabIndex = 29;
+            this.front.TabStop = true;
+            this.front.Text = "Front";
+            this.front.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.ID = null;
+            this.button2.Text = "button2";
+            // 
+            // back
+            // 
+            this.back.Location = new System.Drawing.Point(247, 149);
+            this.back.Name = "back";
+            this.back.Size = new System.Drawing.Size(104, 24);
+            this.back.TabIndex = 30;
+            this.back.Text = "Back";
+            this.back.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1060, 593);
+            this.Controls.Add(this.back);
+            this.Controls.Add(this.front);
             this.Controls.Add(this.label11);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.label9);
@@ -265,6 +295,13 @@
             this.ResumeLayout(false);
             this.PerformLayout();
         }
+
+        private System.Windows.Forms.RadioButton back;
+        private System.Windows.Forms.RadioButton front;
+
+        private System.Web.UI.WebControls.Button button2;
+
+        private System.Windows.Forms.RadioButton radioButton1;
 
         private System.Windows.Forms.Label label11;
 

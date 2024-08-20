@@ -4,9 +4,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using MagTek;
@@ -15,8 +12,8 @@ namespace SCMagTek
 {
     public partial class Form1 : Form
     {
-        public Scanner scanner;
-        private Stream ms;
+        private Scanner _scanner;
+        private Stream _ms;
 
         public Form1()
         {
@@ -50,7 +47,6 @@ namespace SCMagTek
             // serverThread = new Thread(StartServer);
             // serverThread.Start();
         }
-
 
         // Initialize the scanner with the selected settings
         private void InitBtnClick(object sender, EventArgs e)
@@ -88,8 +84,8 @@ namespace SCMagTek
             bool breakState = checkBox1.Checked;
 
             // initialize the scanner
-            scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, Callback, ImageCallback);
-            scanner.Initialize();
+            _scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, Callback, ImageCallback);
+            _scanner.Initialize();
 
             textBox4.Text += "Scanner Initialized" + "\r\n";
         }
@@ -132,11 +128,11 @@ namespace SCMagTek
         {
             try
             {
-                ms = new MemoryStream(byteArrayIn);
+                _ms = new MemoryStream(byteArrayIn);
                 // sleep for .3 seconds
                 Thread.Sleep(500);
                 // create a new image from the memory stream
-                Image returnImage = Image.FromStream(ms);
+                Image returnImage = Image.FromStream(_ms);
                 Thread.Sleep(200);
                 // return the image
                 return returnImage;
@@ -151,15 +147,13 @@ namespace SCMagTek
 
         private void close_Click(object sender, EventArgs e)
         {
-            // close the scanner
-            scanner.Dispose();
+            _scanner?.Dispose();
             textBox4.Text += "Scanner Closed" + "\r\n";
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            // close the scanner
-            scanner.Dispose();
+            _scanner?.Dispose();
         }
     }
 }
