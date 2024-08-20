@@ -114,7 +114,7 @@
                 RequestImage();
             }
 
-            Console.WriteLine(response);
+            // Console.WriteLine(response);
 
             var pattern = @"T(?<routing>[a-zA-Z0-9]*)T(?<account>[a-zA-Z0-9]*)A(?<checknumber>[a-zA-Z0-9]*)S?";
 
