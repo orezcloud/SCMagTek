@@ -1,12 +1,12 @@
-﻿namespace MagTek
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO.Ports;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.IO.Ports;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 
+namespace MagTek
+{
     public class Scanner : IDisposable
     {
         private ScannedCheck _check;
@@ -15,10 +15,14 @@
         private List<byte> _file;
         private SerialPort _port;
         public event DataReceivedEventHandler DataReceived;
+
         public event CheckScannedEventHandler CheckScanned;
+
         // callback for printing text of event
-        public delegate void ScannerCallback(string text);
+        public delegate void ScannerCallback(ScannedCheck scannedCheck);
+
         public delegate void ImageCallback(byte[] image);
+
         private ScannerCallback _callback;
         private ImageCallback _imageCallback;
 
@@ -51,6 +55,9 @@
             {
                 _port?.Close();
                 _port?.Dispose();
+                _port = null;
+                _downloadingImage = false;
+                _disposing = false;
             }
             catch (Exception)
             {
@@ -59,7 +66,6 @@
 
         public void Initialize()
         {
-        
             _port = new SerialPort(PortName);
             _port.Open();
 
@@ -95,6 +101,7 @@
             SendRequest("SF C0 F4");
         }
 
+        //
         private void PortOnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             var cnt = _port.BytesToRead;
@@ -113,13 +120,11 @@
                 _port.DataReceived -= PortOnDataReceived;
                 RequestImage();
             }
-
-            // Console.WriteLine(response);
-
-            var pattern = @"T(?<routing>[a-zA-Z0-9]*)T(?<account>[a-zA-Z0-9]*)A(?<checknumber>[a-zA-Z0-9]*)S?";
-
-            if (Regex.IsMatch(response, pattern))
+            else
             {
+                const string pattern = @"T(?<routing>[a-zA-Z0-9]*)T(?<account>[a-zA-Z0-9]*)A(?<checknumber>[a-zA-Z0-9]*)S?";
+
+                if (!Regex.IsMatch(response, pattern)) return;
                 var m = Regex.Match(response, pattern);
 
                 _check = new ScannedCheck
@@ -129,7 +134,7 @@
                     RoutingNumber = m.Groups["routing"].Value
                 };
                 // callback to print text of event
-                _callback("Check scanned: " + _check.CheckNumber + " | " + _check.AccountNumber + " | " + _check.RoutingNumber);
+                // _callback("Check scanned: " + _check.CheckNumber + " | " + _check.AccountNumber + " | " + _check.RoutingNumber);
 
                 _file = new List<byte>();
 
@@ -163,12 +168,13 @@
 
             // have all bytes
             _check.CheckImage = _file.ToArray();
-            
+
             // callback to print text of event
-            _callback("Image received: " + _check.CheckImage.Length + " bytes");
-            _imageCallback(_check.CheckImage);
+            // _callback("Image received: " + _check.CheckImage.Length + " bytes");
+            // _imageCallback(_check.CheckImage);
 
             CheckScanned?.Invoke(null, new CheckScannedEventArgs(_check));
+            _callback(_check);
 
             _file.Clear();
 

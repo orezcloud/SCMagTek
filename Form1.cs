@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows.Forms;
 using MagTek;
 
+
 namespace SCMagTek
 {
     public partial class Form1 : Form
@@ -76,23 +77,51 @@ namespace SCMagTek
             }
 
             // get the selected settings
-            string portName = textBox1.Text;
-            int baudRate = Convert.ToInt32(textBox2.Text);
-            int dataBits = Convert.ToInt32(textBox3.Text);
-            Parity parity = (Parity) comboBox1.SelectedIndex;
-            StopBits stopBits = (StopBits) comboBox2.SelectedIndex;
-            bool breakState = checkBox1.Checked;
+            var portName = textBox1.Text;
+            var baudRate = Convert.ToInt32(textBox2.Text);
+            var dataBits = Convert.ToInt32(textBox3.Text);
+            var parity = (Parity) comboBox1.SelectedIndex;
+            var stopBits = (StopBits) comboBox2.SelectedIndex;
+            var breakState = checkBox1.Checked;
 
             // initialize the scanner
-            _scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, Callback, ImageCallback);
+            _scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, CheckScannedCallback,
+                ImageCallback);
             _scanner.Initialize();
 
             textBox4.Text += "Scanner Initialized" + "\r\n";
         }
 
-        private void Callback(string data)
+        private void CheckScannedCallback(ScannedCheck data)
         {
-            textBox4.Text += data;
+            var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var text = data.CheckNumber + "\r\n" +
+                       data.AccountNumber + "\r\n" +
+                       data.RoutingNumber + "\r\n";
+            // var text = "Check Number: " + data.CheckNumber + "\r\n" +
+            //            "Account Number: " + data.AccountNumber + "\r\n" +
+            //            "Routing Number: " + data.RoutingNumber + "\r\n";
+
+            if (front.Checked)
+            {
+                var filePath = Path.Combine(folderPath, "check-front.txt");
+                var imageFilePath = Path.Combine(folderPath, "check-front.jpg");
+                File.WriteAllText(filePath, text);
+                SaveToPath(data.CheckImage, imageFilePath);
+                front.Checked = false;
+                back.Checked = true;
+            }
+            else if (back.Checked)
+            {
+                var filePath = Path.Combine(folderPath, "check-back.txt");
+                var imageFilePath = Path.Combine(folderPath, "check-back.jpg");
+                File.WriteAllText(filePath, text);
+                SaveToPath(data.CheckImage, imageFilePath);
+                back.Checked = false;
+                front.Checked = true;
+                _scanner.Dispose();
+                textBox4.Text = "";
+            }
         }
 
         private void ImageCallback(byte[] data)
@@ -103,16 +132,37 @@ namespace SCMagTek
                 return;
             }
 
-            string desktopPath1 = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            string smartCashTemp = Path.Combine(desktopPath1, "AppData\\Local\\Temp\\smart-cash");
+            try
+            {
+                var image = ByteArrayToImage(data);
+
+                var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.InternetCache);
+                var filePath = Path.Combine(desktopPath, "image.jpg");
+                image.Save(filePath, ImageFormat.Jpeg);
+
+                pictureBox1.Image = image;
+            }
+            catch (Exception e)
+            {
+                // alert the user
+                MessageBox.Show("Error: " + e.Message);
+                throw;
+            }
+        }
+
+        private void SaveToPath(byte[] data, string path)
+        {
+            if (data == null || data.Length == 0)
+            {
+                MessageBox.Show("Error: 0");
+                return;
+            }
 
             try
             {
-                Image image = ByteArrayToImage(data);
+                var image = ByteArrayToImage(data);
 
-                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.InternetCache);
-                string filePath = Path.Combine(desktopPath, "image.jpg");
-                image.Save(filePath, ImageFormat.Jpeg);
+                image.Save(path, ImageFormat.Jpeg);
 
                 pictureBox1.Image = image;
             }
@@ -132,7 +182,7 @@ namespace SCMagTek
                 // sleep for .3 seconds
                 Thread.Sleep(500);
                 // create a new image from the memory stream
-                Image returnImage = Image.FromStream(_ms);
+                var returnImage = Image.FromStream(_ms);
                 Thread.Sleep(200);
                 // return the image
                 return returnImage;
