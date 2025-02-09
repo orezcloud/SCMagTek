@@ -171,7 +171,7 @@ namespace MagTek
 
             // callback to print text of event
             // _callback("Image received: " + _check.CheckImage.Length + " bytes");
-            // _imageCallback(_check.CheckImage);
+            _imageCallback(_check.CheckImage);
 
             CheckScanned?.Invoke(null, new CheckScannedEventArgs(_check));
             _callback(_check);

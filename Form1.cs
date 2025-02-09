@@ -8,19 +8,20 @@ using System.Threading;
 using System.Windows.Forms;
 using MagTek;
 
-
 namespace SCMagTek
 {
     public partial class Form1 : Form
     {
         private Scanner _scanner;
         private Stream _ms;
+        private bool _close;
+        private readonly string _folderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
         public Form1()
         {
             InitializeComponent();
             // TITLE
-            this.Text = "MagTek Scanner";
+            Text = "MagTek Scanner";
 
             // select parity in combobox1
             comboBox1.Items.Add("None");
@@ -45,8 +46,29 @@ namespace SCMagTek
             // image to contain 
             pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
 
-            // serverThread = new Thread(StartServer);
-            // serverThread.Start();
+            var openCheckThread = new Thread(OpenCheck);
+            openCheckThread.Start();
+        }
+
+        private void OpenCheck()
+        {
+            // var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var filePath = Path.Combine(_folderPath, "start.txt");
+            while (!_close)
+            {
+                // check if start.txt exist in desktop
+                if (File.Exists(filePath))
+                {
+                    Show();
+                    // start the scanner
+                    InitBtnClick(null, null);
+                    // delete the file
+                    File.Delete(filePath);
+                    Thread.Sleep(2000);
+                }
+
+                Thread.Sleep(1000);
+            }
         }
 
         // Initialize the scanner with the selected settings
@@ -84,6 +106,8 @@ namespace SCMagTek
             var stopBits = (StopBits) comboBox2.SelectedIndex;
             var breakState = checkBox1.Checked;
 
+            _scanner?.Dispose();
+            Thread.Sleep(500);
             // initialize the scanner
             _scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, CheckScannedCallback,
                 ImageCallback);
@@ -94,18 +118,16 @@ namespace SCMagTek
 
         private void CheckScannedCallback(ScannedCheck data)
         {
-            var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             var text = data.CheckNumber + "\r\n" +
                        data.AccountNumber + "\r\n" +
                        data.RoutingNumber + "\r\n";
-            // var text = "Check Number: " + data.CheckNumber + "\r\n" +
-            //            "Account Number: " + data.AccountNumber + "\r\n" +
-            //            "Routing Number: " + data.RoutingNumber + "\r\n";
+            
+            textBox4.Text += text + "\r\n";
 
             if (front.Checked)
             {
-                var filePath = Path.Combine(folderPath, "check-front.txt");
-                var imageFilePath = Path.Combine(folderPath, "check-front.jpg");
+                var filePath = Path.Combine(_folderPath, "check-front.txt");
+                var imageFilePath = Path.Combine(_folderPath, "check-front.jpg");
                 File.WriteAllText(filePath, text);
                 SaveToPath(data.CheckImage, imageFilePath);
                 front.Checked = false;
@@ -113,8 +135,8 @@ namespace SCMagTek
             }
             else if (back.Checked)
             {
-                var filePath = Path.Combine(folderPath, "check-back.txt");
-                var imageFilePath = Path.Combine(folderPath, "check-back.jpg");
+                var filePath = Path.Combine(_folderPath, "check-back.txt");
+                var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
                 SaveToPath(data.CheckImage, imageFilePath);
                 back.Checked = false;
@@ -131,15 +153,15 @@ namespace SCMagTek
                 MessageBox.Show("Error: 0");
                 return;
             }
-
+            
             try
             {
                 var image = ByteArrayToImage(data);
-
-                var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.InternetCache);
-                var filePath = Path.Combine(desktopPath, "image.jpg");
+            
+                var filePath = Path.Combine(_folderPath, "image.jpg");
+                textBox4.Text += "Image saved to: " + filePath + "\r\n";
                 image.Save(filePath, ImageFormat.Jpeg);
-
+            
                 pictureBox1.Image = image;
             }
             catch (Exception e)
@@ -204,6 +226,33 @@ namespace SCMagTek
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             _scanner?.Dispose();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _scanner?.Dispose();
+            if (_close) return;
+            if (e.CloseReason != CloseReason.UserClosing) return;
+            notifyIcon1.Visible = true;
+            Hide();
+            e.Cancel = true;
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _scanner?.Dispose();
+            _close = true;
+            Close();
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            Show();
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Show();
         }
     }
 }
