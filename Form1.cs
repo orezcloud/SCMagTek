@@ -18,7 +18,6 @@ namespace SCMagTek {
         private readonly string _folderPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         public Form1() {
-
             InitializeComponent();
             // TITLE
             Text = "MagTek Scanner";
@@ -46,27 +45,18 @@ namespace SCMagTek {
             // image to contain 
             pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
 
-            // var openCheckThread = new Thread(OpenCheck);
-            // openCheckThread.Start();
             Show();
+            if (!IsDebug()) {
+                InitBtnClick(null, null);
+            }
         }
 
-        private void OpenCheck() {
-            // var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = Path.Combine(_folderPath, "start.txt");
-            while (!_close) {
-                // check if start.txt exist in desktop
-                if (File.Exists(filePath)) {
-                    Show();
-                    // start the scanner
-                    InitBtnClick(null, null);
-                    // delete the file
-                    File.Delete(filePath);
-                    Thread.Sleep(2000);
-                }
-
-                Thread.Sleep(1000);
-            }
+        private static bool IsDebug() {
+#if DEBUG
+            return true;
+#else
+                        return false;
+#endif
         }
 
         // Initialize the scanner with the selected settings
@@ -101,11 +91,12 @@ namespace SCMagTek {
 
             _scanner?.Dispose();
             Thread.Sleep(500);
-            
+
             if (_scanner != null) {
                 _scanner.Dispose();
                 _scanner = null;
             }
+
             // initialize the scanner
             _scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, CheckScannedCallback,
                 ImageCallback);
