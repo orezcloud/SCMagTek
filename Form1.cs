@@ -8,17 +8,17 @@ using System.Threading;
 using System.Windows.Forms;
 using MagTek;
 
-namespace SCMagTek
-{
-    public partial class Form1 : Form
-    {
+namespace SCMagTek {
+    public partial class Form1 : Form {
         private Scanner _scanner;
         private Stream _ms;
-        private bool _close;
-        private readonly string _folderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-        public Form1()
-        {
+        private bool _close;
+
+        private readonly string _folderPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        public Form1() {
+
             InitializeComponent();
             // TITLE
             Text = "MagTek Scanner";
@@ -46,19 +46,17 @@ namespace SCMagTek
             // image to contain 
             pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
 
-            var openCheckThread = new Thread(OpenCheck);
-            openCheckThread.Start();
+            // var openCheckThread = new Thread(OpenCheck);
+            // openCheckThread.Start();
+            Show();
         }
 
-        private void OpenCheck()
-        {
+        private void OpenCheck() {
             // var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             var filePath = Path.Combine(_folderPath, "start.txt");
-            while (!_close)
-            {
+            while (!_close) {
                 // check if start.txt exist in desktop
-                if (File.Exists(filePath))
-                {
+                if (File.Exists(filePath)) {
                     Show();
                     // start the scanner
                     InitBtnClick(null, null);
@@ -72,28 +70,23 @@ namespace SCMagTek
         }
 
         // Initialize the scanner with the selected settings
-        private void InitBtnClick(object sender, EventArgs e)
-        {
-            if (comboBox1.SelectedIndex == -1)
-            {
+        private void InitBtnClick(object sender, EventArgs e) {
+            if (comboBox1.SelectedIndex == -1) {
                 MessageBox.Show("Please select a parity.");
                 return;
             }
 
-            if (comboBox2.SelectedIndex == -1)
-            {
+            if (comboBox2.SelectedIndex == -1) {
                 MessageBox.Show("Please select a stop bits.");
                 return;
             }
 
-            if (textBox2.Text == "" || !textBox2.Text.All(char.IsDigit))
-            {
+            if (textBox2.Text == "" || !textBox2.Text.All(char.IsDigit)) {
                 MessageBox.Show("Please enter a boud name.");
                 return;
             }
 
-            if (textBox3.Text == "" || !textBox3.Text.All(char.IsDigit))
-            {
+            if (textBox3.Text == "" || !textBox3.Text.All(char.IsDigit)) {
                 MessageBox.Show("Please enter a dataBits rate.");
                 return;
             }
@@ -102,12 +95,17 @@ namespace SCMagTek
             var portName = textBox1.Text;
             var baudRate = Convert.ToInt32(textBox2.Text);
             var dataBits = Convert.ToInt32(textBox3.Text);
-            var parity = (Parity) comboBox1.SelectedIndex;
-            var stopBits = (StopBits) comboBox2.SelectedIndex;
+            var parity = (Parity)comboBox1.SelectedIndex;
+            var stopBits = (StopBits)comboBox2.SelectedIndex;
             var breakState = checkBox1.Checked;
 
             _scanner?.Dispose();
             Thread.Sleep(500);
+            
+            if (_scanner != null) {
+                _scanner.Dispose();
+                _scanner = null;
+            }
             // initialize the scanner
             _scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, CheckScannedCallback,
                 ImageCallback);
@@ -116,16 +114,14 @@ namespace SCMagTek
             textBox4.Text += "Scanner Initialized" + "\r\n";
         }
 
-        private void CheckScannedCallback(ScannedCheck data)
-        {
+        private void CheckScannedCallback(ScannedCheck data) {
             var text = data.CheckNumber + "\r\n" +
                        data.AccountNumber + "\r\n" +
                        data.RoutingNumber + "\r\n";
-            
+
             textBox4.Text += text + "\r\n";
 
-            if (front.Checked)
-            {
+            if (front.Checked) {
                 var filePath = Path.Combine(_folderPath, "check-front.txt");
                 var imageFilePath = Path.Combine(_folderPath, "check-front.jpg");
                 File.WriteAllText(filePath, text);
@@ -133,8 +129,7 @@ namespace SCMagTek
                 front.Checked = false;
                 back.Checked = true;
             }
-            else if (back.Checked)
-            {
+            else if (back.Checked) {
                 var filePath = Path.Combine(_folderPath, "check-back.txt");
                 var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
@@ -146,60 +141,50 @@ namespace SCMagTek
             }
         }
 
-        private void ImageCallback(byte[] data)
-        {
-            if (data == null || data.Length == 0)
-            {
+        private void ImageCallback(byte[] data) {
+            if (data == null || data.Length == 0) {
                 MessageBox.Show("Error: 0");
                 return;
             }
-            
-            try
-            {
+
+            try {
                 var image = ByteArrayToImage(data);
-            
+
                 var filePath = Path.Combine(_folderPath, "image.jpg");
                 textBox4.Text += "Image saved to: " + filePath + "\r\n";
                 image.Save(filePath, ImageFormat.Jpeg);
-            
+
                 pictureBox1.Image = image;
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 // alert the user
                 MessageBox.Show("Error: " + e.Message);
                 throw;
             }
         }
 
-        private void SaveToPath(byte[] data, string path)
-        {
-            if (data == null || data.Length == 0)
-            {
+        private void SaveToPath(byte[] data, string path) {
+            if (data == null || data.Length == 0) {
                 MessageBox.Show("Error: 0");
                 return;
             }
 
-            try
-            {
+            try {
                 var image = ByteArrayToImage(data);
 
                 image.Save(path, ImageFormat.Jpeg);
 
                 pictureBox1.Image = image;
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 // alert the user
                 MessageBox.Show("Error: " + e.Message);
                 throw;
             }
         }
 
-        private Image ByteArrayToImage(byte[] byteArrayIn)
-        {
-            try
-            {
+        private Image ByteArrayToImage(byte[] byteArrayIn) {
+            try {
                 _ms = new MemoryStream(byteArrayIn);
                 // sleep for .3 seconds
                 Thread.Sleep(500);
@@ -209,27 +194,23 @@ namespace SCMagTek
                 // return the image
                 return returnImage;
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 // alert the user
                 MessageBox.Show("Error1: " + e.Message);
                 throw;
             }
         }
 
-        private void close_Click(object sender, EventArgs e)
-        {
+        private void close_Click(object sender, EventArgs e) {
             _scanner?.Dispose();
             textBox4.Text += "Scanner Closed" + "\r\n";
         }
 
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
-        {
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e) {
             _scanner?.Dispose();
         }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
             _scanner?.Dispose();
             if (_close) return;
             if (e.CloseReason != CloseReason.UserClosing) return;
@@ -238,20 +219,17 @@ namespace SCMagTek
             e.Cancel = true;
         }
 
-        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e) {
             _scanner?.Dispose();
             _close = true;
             Close();
         }
 
-        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e) {
             Show();
         }
 
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
-        {
+        private void openToolStripMenuItem_Click(object sender, EventArgs e) {
             Show();
         }
     }
