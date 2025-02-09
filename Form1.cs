@@ -203,11 +203,12 @@ namespace SCMagTek {
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
             _scanner?.Dispose();
-            if (_close) return;
-            if (e.CloseReason != CloseReason.UserClosing) return;
-            notifyIcon1.Visible = true;
-            Hide();
-            e.Cancel = true;
+            // uncomment below all to close only visually
+            // if (_close) return;
+            // if (e.CloseReason != CloseReason.UserClosing) return;
+            // notifyIcon1.Visible = true;
+            // Hide();
+            // e.Cancel = true;
         }
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e) {
