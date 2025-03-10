@@ -54,7 +54,7 @@ namespace SCMagTek {
 #if DEBUG
             return true;
 #else
-                        return false;
+            return false;
 #endif
         }
 
@@ -115,7 +115,7 @@ namespace SCMagTek {
                 var filePath = Path.Combine(_folderPath, "check-front.txt");
                 var imageFilePath = Path.Combine(_folderPath, "check-front.jpg");
                 File.WriteAllText(filePath, text);
-                SaveToPath(data.CheckImage, imageFilePath);
+                // SaveToPath(data.CheckImage, imageFilePath);
                 front.Checked = false;
                 back.Checked = true;
             }
@@ -125,7 +125,7 @@ namespace SCMagTek {
                         "check-back.txt"); // even though there is no data, we still have to save the file
                 var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
-                SaveToPath(data.CheckImage, imageFilePath);
+                // SaveToPath(data.CheckImage, imageFilePath);
                 if (_scanner != null) {
                     _scanner.Dispose();
                     _scanner = null;
@@ -139,16 +139,16 @@ namespace SCMagTek {
         }
 
         private void ImageCallback(byte[] data) {
-            return; // Let's not save the image
+            // return; // Let's not save the image
             if (data == null || data.Length == 0) {
-                MessageBox.Show("Error: 0");
+                MessageBox.Show("Error: 0 length image.");
                 return;
             }
 
             try {
                 var image = ByteArrayToImage(data);
 
-                var filePath = Path.Combine(_folderPath, "image.jpg");
+                var filePath = Path.Combine(_folderPath, "check-front.txt");
                 textBox4.Text += "Image saved to: " + filePath + "\r\n";
                 image.Save(filePath, ImageFormat.Jpeg);
 
@@ -156,7 +156,7 @@ namespace SCMagTek {
             }
             catch (Exception e) {
                 // alert the user
-                MessageBox.Show("Error: " + e.Message);
+                MessageBox.Show("Error 54: " + e.Message);
                 throw;
             }
         }
