@@ -21,7 +21,6 @@ namespace SCMagTek {
             InitializeComponent();
             // TITLE
             Text = "MagTek Scanner";
-
             // select parity in combobox1
             comboBox1.Items.Add("None");
             comboBox1.Items.Add("Odd");
@@ -29,7 +28,7 @@ namespace SCMagTek {
             comboBox1.Items.Add("Mark");
             comboBox1.Items.Add("Space");
 
-            // select stopbits in combobox2
+            // select stop bits in combobox2
             comboBox2.Items.Add("None");
             comboBox2.Items.Add("One");
             comboBox2.Items.Add("Two");
@@ -121,18 +120,26 @@ namespace SCMagTek {
                 back.Checked = true;
             }
             else if (back.Checked) {
-                var filePath = Path.Combine(_folderPath, "check-back.txt");
+                var filePath =
+                    Path.Combine(_folderPath,
+                        "check-back.txt"); // even though there is no data, we still have to save the file
                 var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
                 SaveToPath(data.CheckImage, imageFilePath);
-                back.Checked = false;
-                front.Checked = true;
-                _scanner.Dispose();
+                if (_scanner != null) {
+                    _scanner.Dispose();
+                    _scanner = null;
+                }
+
                 textBox4.Text = "";
+                // close
+                _close = true;
+                Close();
             }
         }
 
         private void ImageCallback(byte[] data) {
+            return; // Let's not save the image
             if (data == null || data.Length == 0) {
                 MessageBox.Show("Error: 0");
                 return;
@@ -175,20 +182,23 @@ namespace SCMagTek {
         }
 
         private Image ByteArrayToImage(byte[] byteArrayIn) {
+            if (byteArrayIn == null || byteArrayIn.Length == 0) {
+                MessageBox.Show("Error: Invalid image data.");
+                return null;
+            }
+
             try {
-                _ms = new MemoryStream(byteArrayIn);
-                // sleep for .3 seconds
-                Thread.Sleep(500);
-                // create a new image from the memory stream
-                var returnImage = Image.FromStream(_ms);
-                Thread.Sleep(200);
-                // return the image
-                return returnImage;
+                using (var ms = new MemoryStream(byteArrayIn)) {
+                    // create a new image from the memory stream
+                    var returnImage = Image.FromStream(ms);
+                    // return the image
+                    return returnImage;
+                }
             }
             catch (Exception e) {
                 // alert the user
                 MessageBox.Show("Error1: " + e.Message);
-                throw;
+                return null;
             }
         }
 
@@ -223,6 +233,28 @@ namespace SCMagTek {
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e) {
             Show();
+        }
+
+        private void button3_Click(object sender, EventArgs e) {
+            // if exist both image
+            if (!File.Exists(Path.Combine(_folderPath, "check-front-test.jpg")) ||
+                !File.Exists(Path.Combine(_folderPath, "check-back-test.jpg"))) return;
+            // front check
+            var frontData = new ScannedCheck {
+                CheckNumber = "123456789",
+                AccountNumber = "123456789",
+                RoutingNumber = "123456789",
+                CheckImage = File.ReadAllBytes(Path.Combine(_folderPath, "check-front-test.jpg"))
+            };
+            CheckScannedCallback(frontData);
+            // back check
+            var backData = new ScannedCheck {
+                CheckNumber = "",
+                AccountNumber = "",
+                RoutingNumber = "",
+                CheckImage = File.ReadAllBytes(Path.Combine(_folderPath, "check-back-test.jpg"))
+            };
+            CheckScannedCallback(backData);
         }
     }
 }
