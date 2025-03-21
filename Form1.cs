@@ -46,7 +46,7 @@ namespace SCMagTek {
 
             Show();
             if (!IsDebug()) {
-                InitBtnClick(null, null);
+                // InitBtnClick(null, null);
             }
         }
 
@@ -99,9 +99,9 @@ namespace SCMagTek {
             // initialize the scanner
             _scanner = new Scanner(portName, baudRate, dataBits, parity, stopBits, breakState, CheckScannedCallback,
                 ImageCallback);
-            _scanner.Initialize();
-
-            textBox4.Text += "Scanner Initialized" + "\r\n";
+            if (_scanner.Initialize()) {
+                textBox4.Text += "Scanner Initialized" + "\r\n";
+            }
         }
 
         private void CheckScannedCallback(ScannedCheck data) {
@@ -109,7 +109,12 @@ namespace SCMagTek {
                        data.AccountNumber + "\r\n" +
                        data.RoutingNumber + "\r\n";
 
-            textBox4.Text += text + "\r\n";
+            if (textBox4.InvokeRequired) {
+                textBox4.Invoke(new Action(() => textBox4.Text += text + "\r\n"));
+            }
+            else {
+                textBox4.Text += text + "\r\n";
+            }
 
             if (front.Checked) {
                 var filePath = Path.Combine(_folderPath, "check-front.txt");
@@ -131,10 +136,16 @@ namespace SCMagTek {
                     _scanner = null;
                 }
 
-                textBox4.Text = "";
+                if (textBox4.InvokeRequired) {
+                    textBox4.Invoke(new Action(() => textBox4.Text = ""));
+                }
+                else {
+                    textBox4.Text = "";
+                }
+                if (IsDebug()) return;
                 // close
-                _close = true;
-                Close();
+                // _close = true;
+                // Close();
             }
         }
 
@@ -149,7 +160,12 @@ namespace SCMagTek {
                 var image = ByteArrayToImage(data);
 
                 var filePath = Path.Combine(_folderPath, "check-front.txt");
-                textBox4.Text += "Image saved to: " + filePath + "\r\n";
+                if (textBox4.InvokeRequired) {
+                    textBox4.Invoke(new Action(() => textBox4.Text += "Image saved to: " + filePath + "\r\n"));
+                }
+                else {
+                    textBox4.Text += "Image saved to: " + filePath + "\r\n";
+                }
                 image.Save(filePath, ImageFormat.Jpeg);
 
                 pictureBox1.Image = image;

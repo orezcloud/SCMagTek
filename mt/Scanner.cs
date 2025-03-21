@@ -4,11 +4,10 @@ using System.IO.Ports;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Windows.Forms;
 
-namespace MagTek
-{
-    public class Scanner : IDisposable
-    {
+namespace MagTek {
+    public class Scanner : IDisposable {
         private ScannedCheck _check;
         private bool _disposing;
         private bool _downloadingImage;
@@ -27,8 +26,7 @@ namespace MagTek
         private ImageCallback _imageCallback;
 
         public Scanner(string portName, int baudRate, int dataBits,
-            Parity parity, StopBits stopBits, bool breakState, ScannerCallback callback, ImageCallback imageCallback)
-        {
+            Parity parity, StopBits stopBits, bool breakState, ScannerCallback callback, ImageCallback imageCallback) {
             PortName = portName; // e.g. COM1, COM2, etc.
             BaudRate = baudRate;
             DataBits = dataBits;
@@ -46,28 +44,29 @@ namespace MagTek
         public StopBits StopBits { get; set; }
         public bool BreakState { get; set; }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             if (_disposing) return;
             _disposing = true;
 
-            try
-            {
+            try {
                 _port?.Close();
                 _port?.Dispose();
                 _port = null;
                 _downloadingImage = false;
                 _disposing = false;
             }
-            catch (Exception)
-            {
-            }
+            catch (Exception) { }
         }
 
-        public void Initialize()
-        {
+        public bool Initialize() {
             _port = new SerialPort(PortName);
-            _port.Open();
+            try {
+                _port.Open();
+            }
+            catch (Exception ex) {
+                MessageBox.Show("Error opening port: " + ex.Message);
+                return false;
+            }
 
             _port.BaudRate = BaudRate;
             _port.BreakState = BreakState;
@@ -87,23 +86,21 @@ namespace MagTek
             SendRequest("SWI 00000000"); // image parameters
             SendRequest("HW 00111100"); // hardware
             SendRequest("FC 6200"); // format: T[transit]T[account]A[check #]
+            return true;
         }
 
-        public void SendRequest(string s)
-        {
+        public void SendRequest(string s) {
             var request = $"{s}\r";
             _port.Write(request);
         }
 
-        private void RequestImage()
-        {
+        private void RequestImage() {
             _port.DataReceived += ImageReceived;
             SendRequest("SF C0 F4");
         }
 
         //
-        private void PortOnDataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
+        private void PortOnDataReceived(object sender, SerialDataReceivedEventArgs e) {
             var cnt = _port.BytesToRead;
             var bytes = new byte[cnt];
 
@@ -114,21 +111,19 @@ namespace MagTek
             // send if anyone is listening
             DataReceived?.Invoke(null, new DataReceivedEventArgs(response));
 
-            if (_downloadingImage)
-            {
+            if (_downloadingImage) {
                 // caught after SI is sent
                 _port.DataReceived -= PortOnDataReceived;
                 RequestImage();
             }
-            else
-            {
-                const string pattern = @"T(?<routing>[a-zA-Z0-9]*)T(?<account>[a-zA-Z0-9]*)A(?<checknumber>[a-zA-Z0-9]*)S?";
+            else {
+                const string pattern =
+                    @"T(?<routing>[a-zA-Z0-9]*)T(?<account>[a-zA-Z0-9]*)A(?<checknumber>[a-zA-Z0-9]*)S?";
 
                 if (!Regex.IsMatch(response, pattern)) return;
                 var m = Regex.Match(response, pattern);
 
-                _check = new ScannedCheck
-                {
+                _check = new ScannedCheck {
                     CheckNumber = m.Groups["checknumber"].Value,
                     AccountNumber = m.Groups["account"].Value,
                     RoutingNumber = m.Groups["routing"].Value
@@ -146,16 +141,15 @@ namespace MagTek
             }
         }
 
-        private void ImageReceived(object sender, SerialDataReceivedEventArgs e)
-        {
+        private void ImageReceived(object sender, SerialDataReceivedEventArgs e) {
+            if (_port == null) return; // Add null check for _port
             _port.DataReceived -= ImageReceived;
 
             if (!_downloadingImage) return;
 
             if (_port.BytesToRead == 0) return;
 
-            while (_port.BytesToRead > 0)
-            {
+            while (_port.BytesToRead > 0) {
                 var cnt = _port.BytesToRead;
 
                 var bytes = new byte[cnt];
@@ -179,7 +173,7 @@ namespace MagTek
             _file.Clear();
 
             _downloadingImage = false;
-
+            if (_port == null) return;
             _port.DataReceived += PortOnDataReceived;
 
             SendRequest("FM ERASE");
