@@ -129,8 +129,7 @@ namespace MagTek {
                     RoutingNumber = m.Groups["routing"].Value
                 };
                 // callback to print text of event
-                // _callback("Check scanned: " + _check.CheckNumber + " | " + _check.AccountNumber + " | " + _check.RoutingNumber);
-                _callback(_check);
+                // _callback(_check);
 
                 _file = new List<byte>();
 
@@ -165,10 +164,8 @@ namespace MagTek {
             _check.CheckImage = _file.ToArray();
 
             // callback to print text of event
-            // _callback("Image received: " + _check.CheckImage.Length + " bytes");
-            _imageCallback(_check.CheckImage);
+            // _imageCallback(_check.CheckImage);
 
-            // CheckScanned?.Invoke(null, new CheckScannedEventArgs(_check));
             _callback(_check);
 
             _file.Clear();
