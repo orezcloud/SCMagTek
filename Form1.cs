@@ -120,7 +120,7 @@ namespace SCMagTek {
                 var filePath = Path.Combine(_folderPath, "check-front.txt");
                 var imageFilePath = Path.Combine(_folderPath, "check-front.jpg");
                 File.WriteAllText(filePath, text);
-                // SaveToPath(data.CheckImage, imageFilePath);
+                SaveToPath(data.CheckImage, imageFilePath);
                 front.Checked = false;
                 back.Checked = true;
             }
@@ -130,22 +130,14 @@ namespace SCMagTek {
                         "check-back.txt"); // even though there is no data, we still have to save the file
                 var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
-                // SaveToPath(data.CheckImage, imageFilePath);
+                SaveToPath(data.CheckImage, imageFilePath);
                 if (_scanner != null) {
                     _scanner.Dispose();
                     _scanner = null;
                 }
-
-                if (textBox4.InvokeRequired) {
-                    textBox4.Invoke(new Action(() => textBox4.Text = ""));
-                }
-                else {
-                    textBox4.Text = "";
-                }
                 if (IsDebug()) return;
-                // close
-                // _close = true;
-                // Close();
+                _close = true;
+                Close();
             }
         }
 
