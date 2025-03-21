@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using MagTek;
+using SCMagTek.Settings;
 
 namespace SCMagTek {
     public partial class Form1 : Form {
@@ -35,7 +36,10 @@ namespace SCMagTek {
             comboBox2.Items.Add("OnePointFive");
 
             // enter the default settings
-            textBox1.Text = "COM1";
+            // textBox1.Text = "COM1";
+            textBox1.Text = !string.IsNullOrEmpty(SettingsManager.Instance.LastComPort)
+                ? SettingsManager.Instance.LastComPort
+                : "COM1";
             textBox2.Text = "115200"; // usually 9600, 19200, 38400, 57600, or 115200
             textBox3.Text = "8"; // usually 8 or 7
             comboBox1.SelectedIndex = 0;
@@ -46,7 +50,7 @@ namespace SCMagTek {
 
             Show();
             if (!IsDebug()) {
-                // InitBtnClick(null, null);
+                InitBtnClick(null, null);
             }
         }
 
@@ -101,6 +105,7 @@ namespace SCMagTek {
                 ImageCallback);
             if (_scanner.Initialize()) {
                 textBox4.Text += "Scanner Initialized" + "\r\n";
+                SettingsManager.Instance.LastComPort = portName;
             }
         }
 
@@ -121,6 +126,7 @@ namespace SCMagTek {
                 var imageFilePath = Path.Combine(_folderPath, "check-front.jpg");
                 File.WriteAllText(filePath, text);
                 SaveToPath(data.CheckImage, imageFilePath);
+                if (IsDebug()) return;
                 front.Checked = false;
                 back.Checked = true;
             }
@@ -131,18 +137,19 @@ namespace SCMagTek {
                 var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
                 SaveToPath(data.CheckImage, imageFilePath);
+
+                if (IsDebug()) return;
                 if (_scanner != null) {
                     _scanner.Dispose();
                     _scanner = null;
                 }
-                if (IsDebug()) return;
                 _close = true;
                 Close();
             }
         }
 
         private void ImageCallback(byte[] data) {
-            // return; // Let's not save the image
+            return; // Let's not save the image
             if (data == null || data.Length == 0) {
                 MessageBox.Show("Error: 0 length image.");
                 return;
@@ -158,6 +165,7 @@ namespace SCMagTek {
                 else {
                     textBox4.Text += "Image saved to: " + filePath + "\r\n";
                 }
+
                 image.Save(filePath, ImageFormat.Jpeg);
 
                 pictureBox1.Image = image;
@@ -171,7 +179,7 @@ namespace SCMagTek {
 
         private void SaveToPath(byte[] data, string path) {
             if (data == null || data.Length == 0) {
-                MessageBox.Show("Error: 0");
+                // MessageBox.Show("Error: 0 " + path + " length image.");
                 return;
             }
 

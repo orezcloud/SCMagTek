@@ -91,7 +91,7 @@ namespace MagTek {
 
         public void SendRequest(string s) {
             var request = $"{s}\r";
-            _port.Write(request);
+            _port?.Write(request);
         }
 
         private void RequestImage() {
@@ -130,6 +130,7 @@ namespace MagTek {
                 };
                 // callback to print text of event
                 // _callback("Check scanned: " + _check.CheckNumber + " | " + _check.AccountNumber + " | " + _check.RoutingNumber);
+                _callback(_check);
 
                 _file = new List<byte>();
 
@@ -167,7 +168,7 @@ namespace MagTek {
             // _callback("Image received: " + _check.CheckImage.Length + " bytes");
             _imageCallback(_check.CheckImage);
 
-            CheckScanned?.Invoke(null, new CheckScannedEventArgs(_check));
+            // CheckScanned?.Invoke(null, new CheckScannedEventArgs(_check));
             _callback(_check);
 
             _file.Clear();
