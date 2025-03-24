@@ -129,6 +129,22 @@ namespace SCMagTek {
                 if (IsDebug()) return;
                 front.Checked = false;
                 back.Checked = true;
+
+                // reinitialize the scanner
+                _scanner?.Dispose();
+                Thread.Sleep(1000);
+                if (_scanner != null) {
+                    _scanner.Dispose();
+                    _scanner = null;
+                }
+
+                // initialize the scanner
+                _scanner = new Scanner(textBox1.Text, Convert.ToInt32(textBox2.Text), Convert.ToInt32(textBox3.Text),
+                    (Parity)comboBox1.SelectedIndex, (StopBits)comboBox2.SelectedIndex, checkBox1.Checked,
+                    CheckScannedCallback, ImageCallback);
+                if (_scanner.Initialize()) {
+                    textBox4.Text += "Scanner Initialized" + "\r\n";
+                }
             }
             else if (back.Checked) {
                 var filePath =
@@ -143,6 +159,7 @@ namespace SCMagTek {
                     _scanner.Dispose();
                     _scanner = null;
                 }
+
                 _close = true;
                 Close();
             }
@@ -193,7 +210,6 @@ namespace SCMagTek {
             catch (Exception e) {
                 // alert the user
                 MessageBox.Show("Error: " + e.Message);
-                throw;
             }
         }
 
