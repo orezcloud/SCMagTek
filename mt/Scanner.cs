@@ -15,7 +15,7 @@ namespace MagTek {
         private SerialPort _port;
         public event DataReceivedEventHandler DataReceived;
 
-        public event CheckScannedEventHandler CheckScanned;
+        // public event CheckScannedEventHandler CheckScanned;
 
         // callback for printing text of event
         public delegate void ScannerCallback(ScannedCheck scannedCheck);
