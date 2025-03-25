@@ -12,13 +12,10 @@ using SCMagTek.Settings;
 namespace SCMagTek {
     public partial class Form1 : Form {
         private Scanner _scanner;
-        private Stream _ms;
-
-        private bool _close;
 
         private readonly string _folderPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-        public Form1() {
+        public Form1(bool startWithBackSelected = false) {
             InitializeComponent();
             // TITLE
             Text = "MagTek Scanner";
@@ -47,6 +44,10 @@ namespace SCMagTek {
 
             // image to contain 
             pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
+            
+            // Set initial radio button state based on parameter
+            front.Checked = !startWithBackSelected;
+            back.Checked = startWithBackSelected;
 
             Show();
             if (!IsDebug()) {
@@ -127,29 +128,25 @@ namespace SCMagTek {
                 File.WriteAllText(filePath, text);
                 SaveToPath(data.CheckImage, imageFilePath);
                 if (IsDebug()) return;
-                front.Checked = false;
-                back.Checked = true;
+                // front.Checked = false;
+                // back.Checked = true;
 
-                // reinitialize the scanner
+                
+                // Close this instance
                 _scanner?.Dispose();
-                Thread.Sleep(1000);
-                if (_scanner != null) {
-                    _scanner.Dispose();
-                    _scanner = null;
-                }
+                _scanner = null;
+                
+                Thread.Sleep(500);
+                
+                // Launch new instance for back scanning
+                var exePath = Application.ExecutablePath;
+                System.Diagnostics.Process.Start(exePath, "back");
 
-                // initialize the scanner
-                _scanner = new Scanner(textBox1.Text, Convert.ToInt32(textBox2.Text), Convert.ToInt32(textBox3.Text),
-                    (Parity)comboBox1.SelectedIndex, (StopBits)comboBox2.SelectedIndex, checkBox1.Checked,
-                    CheckScannedCallback, ImageCallback);
-                if (_scanner.Initialize()) {
-                    textBox4.Text += "Scanner Initialized" + "\r\n";
-                }
+                this.Close();
             }
             else if (back.Checked) {
                 var filePath =
-                    Path.Combine(_folderPath,
-                        "check-back.txt"); // even though there is no data, we still have to save the file
+                    Path.Combine(_folderPath, "check-back.txt"); // even though there is no data, we still have to save the file
                 var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
                 SaveToPath(data.CheckImage, imageFilePath);
@@ -160,7 +157,6 @@ namespace SCMagTek {
                     _scanner = null;
                 }
 
-                _close = true;
                 Close();
             }
         }
@@ -255,7 +251,6 @@ namespace SCMagTek {
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e) {
             _scanner?.Dispose();
-            _close = true;
             Close();
         }
 
@@ -268,25 +263,25 @@ namespace SCMagTek {
         }
 
         private void button3_Click(object sender, EventArgs e) {
-            // if exist both image
-            if (!File.Exists(Path.Combine(_folderPath, "check-front-test.jpg")) ||
-                !File.Exists(Path.Combine(_folderPath, "check-back-test.jpg"))) return;
-            // front check
-            var frontData = new ScannedCheck {
-                CheckNumber = "123456789",
-                AccountNumber = "123456789",
-                RoutingNumber = "123456789",
-                CheckImage = File.ReadAllBytes(Path.Combine(_folderPath, "check-front-test.jpg"))
-            };
-            CheckScannedCallback(frontData);
-            // back check
-            var backData = new ScannedCheck {
-                CheckNumber = "",
-                AccountNumber = "",
-                RoutingNumber = "",
-                CheckImage = File.ReadAllBytes(Path.Combine(_folderPath, "check-back-test.jpg"))
-            };
-            CheckScannedCallback(backData);
+            // // if exist both image
+            // if (!File.Exists(Path.Combine(_folderPath, "check-front-test.jpg")) ||
+            //     !File.Exists(Path.Combine(_folderPath, "check-back-test.jpg"))) return;
+            // // front check
+            // var frontData = new ScannedCheck {
+            //     CheckNumber = "123456789",
+            //     AccountNumber = "123456789",
+            //     RoutingNumber = "123456789",
+            //     CheckImage = File.ReadAllBytes(Path.Combine(_folderPath, "check-front-test.jpg"))
+            // };
+            // CheckScannedCallback(frontData);
+            // // back check
+            // var backData = new ScannedCheck {
+            //     CheckNumber = "",
+            //     AccountNumber = "",
+            //     RoutingNumber = "",
+            //     CheckImage = File.ReadAllBytes(Path.Combine(_folderPath, "check-back-test.jpg"))
+            // };
+            // CheckScannedCallback(backData);
         }
     }
 }

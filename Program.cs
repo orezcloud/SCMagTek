@@ -12,11 +12,15 @@ namespace SCMagTek
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            
+      // Check for command line args
+        bool startWithBackSelected = args.Length > 0 && args[0].ToLower() == "back";
+            
+            Application.Run(new Form1(startWithBackSelected));
         }
     }
 }
