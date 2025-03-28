@@ -44,7 +44,7 @@ namespace SCMagTek {
 
             // image to contain 
             pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
-            
+
             // Set initial radio button state based on parameter
             front.Checked = !startWithBackSelected;
             back.Checked = startWithBackSelected;
@@ -122,22 +122,39 @@ namespace SCMagTek {
                 textBox4.Text += text + "\r\n";
             }
 
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             if (front.Checked) {
                 var filePath = Path.Combine(_folderPath, "check-front.txt");
-                var imageFilePath = Path.Combine(_folderPath, "check-front.jpg");
+                var imageFilePath = Path.Combine(_folderPath, $"check-front-{timestamp}.jpg");
+                var standardImagePath = Path.Combine(_folderPath, "check-front.jpg");
                 File.WriteAllText(filePath, text);
-                SaveToPath(data.CheckImage, imageFilePath);
+
+                // Save the image and ensure it's not being reused
+                using (var ms = new MemoryStream(data.CheckImage))
+                using (var image = Image.FromStream(ms)) {
+                    image.Save(imageFilePath, ImageFormat.Jpeg);
+                    image.Save(standardImagePath, ImageFormat.Jpeg);
+                    // Update the UI with the newly saved image
+                    if (pictureBox1.InvokeRequired) {
+                        pictureBox1.Invoke(new Action(() => pictureBox1.Image = new Bitmap(image)));
+                    }
+                    else {
+                        pictureBox1.Image = new Bitmap(image);
+                    }
+                }
+
+                // SaveToPath(data.CheckImage, imageFilePath);
                 if (IsDebug()) return;
                 // front.Checked = false;
                 // back.Checked = true;
 
-                
+
                 // Close this instance
                 _scanner?.Dispose();
                 _scanner = null;
-                
+
                 Thread.Sleep(500);
-                
+
                 // Launch new instance for back scanning
                 var exePath = Application.ExecutablePath;
                 System.Diagnostics.Process.Start(exePath, "back");
@@ -146,10 +163,27 @@ namespace SCMagTek {
             }
             else if (back.Checked) {
                 var filePath =
-                    Path.Combine(_folderPath, "check-back.txt"); // even though there is no data, we still have to save the file
-                var imageFilePath = Path.Combine(_folderPath, "check-back.jpg");
+                    Path.Combine(_folderPath,
+                        "check-back.txt"); // even though there is no data, we still have to save the file
+                var imageFilePath = Path.Combine(_folderPath, $"check-back-{timestamp}.jpg");
+                var standardImagePath = Path.Combine(_folderPath, "check-back.jpg");
                 File.WriteAllText(filePath, text);
-                SaveToPath(data.CheckImage, imageFilePath);
+
+                // Save the image with proper disposal
+                using (var ms = new MemoryStream(data.CheckImage))
+                using (var image = Image.FromStream(ms)) {
+                    image.Save(imageFilePath, ImageFormat.Jpeg);
+                    image.Save(standardImagePath, ImageFormat.Jpeg);
+                    // Update the UI with the newly saved image
+                    if (pictureBox1.InvokeRequired) {
+                        pictureBox1.Invoke(new Action(() => pictureBox1.Image = new Bitmap(image)));
+                    }
+                    else {
+                        pictureBox1.Image = new Bitmap(image);
+                    }
+                }
+
+                // SaveToPath(data.CheckImage, imageFilePath);
 
                 if (IsDebug()) return;
                 if (_scanner != null) {
